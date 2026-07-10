@@ -1,8 +1,7 @@
 import { Podcast, iTunesSearchResponse } from "../types";
 
 export async function fetchBestPodcasts(): Promise<Podcast[]> {
-  const url =
-    "https://applemarketingtools.com{us}/podcasts/top/{25}/podcasts.json";
+  const url = "https://itunes.apple.com/us/rss/toppodcasts/limit=30/json";
   const response = await fetch(url);
   const data = await response.json();
 
@@ -16,7 +15,7 @@ export async function fetchBestPodcasts(): Promise<Podcast[]> {
 
 export async function searchPodcasts(query: string): Promise<Podcast[]> {
   const response = await fetch(
-    `https://apple.com${encodeURIComponent(query)}&media=podcast&limit=30`,
+    `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=podcast&limit=30`,
   );
   const data: iTunesSearchResponse = await response.json();
 
