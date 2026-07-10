@@ -1,7 +1,7 @@
 import { Podcast, iTunesSearchResponse } from "../types";
 
-export async function fetchBestPodcasts(): Promise<Podcast[]> {
-  const url = "https://itunes.apple.com/us/rss/toppodcasts/limit=30/json";
+export async function fetchBestPodcasts(limit: number=20): Promise<Podcast[]> {
+  const url = `https://itunes.apple.com/us/rss/toppodcasts/limit=${limit}/json`;
   const response = await fetch(url);
   const data = await response.json();
 

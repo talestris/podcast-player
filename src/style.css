@@ -1,0 +1,38 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family:
+    "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+  line-height: 1.5;
+  background-color: rgb(172, 236, 233);
+  color: rgb(58, 28, 11);
+}
+
+input,
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+#app {
+  margin: 0 auto;
+  padding: 1.25rem;
+  max-width: fit-content;
+}
+
+#podcast-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
