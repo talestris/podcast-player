@@ -1,5 +1,5 @@
 export interface Podcast {
-  id: string;
+  id: number;
   title: string;
   author: string;
   coverUrl: string;
@@ -9,7 +9,7 @@ export interface iTunesSearchTrack {
   collectionId: number;
   trackName: string;
   artistName: string;
-  artWorkUrl1600: string;
+  artworkUrl600: string;
 }
 
 export interface iTunesSearchResponse {
