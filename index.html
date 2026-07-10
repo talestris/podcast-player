@@ -10,7 +10,10 @@
 
 <body>
     <div id="app">
-        <input type="text" id="search-input" placeholder="search">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="search">
+        </div>
         <div id="loader" style="display: none;">Loading...</div>
         <div id="podcast-list"></div>
         <button type="button" id="load-more-btn">Load more...</button>
