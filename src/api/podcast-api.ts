@@ -1,6 +1,14 @@
-import { Podcast, iTunesSearchResponse } from "../types";
+import {
+  Podcast,
+  iTunesSearchResponse,
+  Episode,
+  iTunesEpisode,
+} from "../types";
+import { formatDate, formatDuration } from "../utils/format";
 
-export async function fetchBestPodcasts(limit: number=20): Promise<Podcast[]> {
+export async function fetchBestPodcasts(
+  limit: number = 20,
+): Promise<Podcast[]> {
   const url = `https://itunes.apple.com/us/rss/toppodcasts/limit=${limit}/json`;
   const response = await fetch(url);
   const data = await response.json();
@@ -24,5 +32,22 @@ export async function searchPodcasts(query: string): Promise<Podcast[]> {
     title: track.trackName,
     author: track.artistName,
     coverUrl: track.artworkUrl600,
+  }));
+}
+
+export async function fetchPodcastDetails(
+  podcastId: number,
+): Promise<Episode[]> {
+  const url = `https://itunes.apple.com/lookup?id=${podcastId}&media=podcast&entity=podcastEpisode&limit=20`;
+  const response = await fetch(url);
+  const data = await response.json();
+
+  const rawEpisodes: iTunesEpisode[] = data.results.slice(1);
+
+  return rawEpisodes.map((ep) => ({
+    id: ep.trackId,
+    title: ep.trackName,
+    publishDate: formatDate(ep.releaseDate),
+    duration: formatDuration(ep.trackTimeMillis),
   }));
 }

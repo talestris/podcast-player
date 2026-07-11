@@ -28,5 +28,5 @@ export interface iTunesEpisode {
   trackId: number;
   trackName: string;
   releaseDate: string;
-  trackTimeMilliseconds: number;
+  trackTimeMillis: number;
 }
