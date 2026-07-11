@@ -35,11 +35,66 @@ button {
   gap: 1rem;
 }
 
-.search-wrapper {
-  position: relative;
+.navigation-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
   max-width: 31.25rem;
   width: 100%;
   margin: 0 auto;
+}
+
+.nav-btn {
+  display: inline-flex;
+  padding: 0.75rem 1rem;
+  background-color: #ffffff;
+  color: #1d1d1f;
+  border: 0.125rem solid #e5e5ea;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn.active {
+  background-color: #ff3b30;
+  color: #ffffff;
+  border-color: #ff3b30;
+}
+
+.episode-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.playlist-btn {
+  display: inline-flex;
+  padding: 0.375rem 0.75rem;
+  background-color: #f5f5f7;
+  color: #1d1d1f;
+  border: 0.063rem solid #d2d2d7;
+  border-radius: 0.375rem;
+  font-size: 0.813rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.playlist-btn.saved {
+  background-color: #ffeef0;
+  color: #ff3b30;
+  border-color: #ffbaba;
+}
+
+.playlist-btn:hover {
+  transform: scale(1.05);
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
 }
 
 .search-icon {
