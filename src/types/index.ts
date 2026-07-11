@@ -16,3 +16,17 @@ export interface iTunesSearchResponse {
   resultCount: number;
   results: iTunesSearchTrack[];
 }
+
+export interface Episode {
+  id: number;
+  title: string;
+  publishDate: string;
+  duration: string;
+}
+
+export interface iTunesEpisode {
+  trackId: number;
+  trackName: string;
+  releaseDate: string;
+  trackTimeMilliseconds: number;
+}
