@@ -22,6 +22,7 @@ export interface Episode {
   title: string;
   publishDate: string;
   duration: string;
+  audioUrl: string;
 }
 
 export interface iTunesEpisode {
@@ -29,4 +30,5 @@ export interface iTunesEpisode {
   trackName: string;
   releaseDate: string;
   trackTimeMillis: number;
+  episodeUrl: string;
 }

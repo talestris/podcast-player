@@ -49,5 +49,6 @@ export async function fetchPodcastDetails(
     title: ep.trackName,
     publishDate: formatDate(ep.releaseDate),
     duration: formatDuration(ep.trackTimeMillis),
+    audioUrl: ep.episodeUrl,
   }));
 }

@@ -1,10 +1,13 @@
-import { Episode } from "../types";
+import { Episode, Podcast } from "../types";
 
-export function createPodcastDetailsPage(episodes: Episode[]): string {
+export function createPodcastDetailsPage(
+  episodes: Episode[],
+  podcast: Podcast,
+): string {
   const episodesHtml = episodes
     .map(
       (ep) => `
-  <div class="episode-item" data-episode-id="${ep.id}">
+  <div class="episode-item" data-audio-url="${ep.audioUrl}" data-title="${ep.title}">
     <div class="episode-info">
       <h4 class="episode-title">${ep.title}</h4>
       <span class="episode-date">${ep.publishDate}</span>
@@ -18,6 +21,13 @@ export function createPodcastDetailsPage(episodes: Episode[]): string {
   return `
     <div class="details-page">
       <button id="back_btn" class="back-btn" type="button">← Back to podcasts</button>
+      <div class="podcast-header-info">
+        <img src="${podcast.coverUrl}" alt="${podcast.title}" class="details-cover">
+        <div class="details-text">
+          <h2>${podcast.title}</h2>
+          <p class="details-author">By ${podcast.author}</p>
+        </div>
+      </div>
       <div class="episodes-container">
         <h3>Recent Episodes (${episodes.length})</h3>
         <div class="episodes-list">

@@ -59,15 +59,15 @@ async function loadApp(searchQuery: string = "") {
   }
 }
 
-async function loadPodcastDetails(podcastId: number) {
+async function loadPodcastDetails(podcast: Podcast) {
   toggleLoader(true);
 
   searchWrapper.style.display = "none";
   loadMoreBtn.style.display = "none";
 
   try {
-    const episodes = await fetchPodcastDetails(podcastId);
-    podcastContainer.innerHTML = createPodcastDetailsPage(episodes);
+    const episodes = await fetchPodcastDetails(podcast.id);
+    podcastContainer.innerHTML = createPodcastDetailsPage(episodes, podcast);
 
     const backBtn = document.querySelector("#back_btn") as HTMLButtonElement;
     if (backBtn) {
@@ -110,8 +110,19 @@ podcastContainer.addEventListener("click", (event: Event) => {
 
   if (card) {
     const podcastId = card.getAttribute("data-id");
+
+    const title = card.querySelector(".podcast-title")?.textContent || "";
+    const author = card.querySelector(".podcast-author")?.textContent || "";
+    const coverUrl = card.querySelector(".podcast-cover")?.getAttribute("src") || "";
+
     if (podcastId) {
-      loadPodcastDetails(Number(podcastId));
+      const podcastData: Podcast = {
+        id: Number(podcastId),
+        title,
+        author,
+        coverUrl,
+      };
+      loadPodcastDetails(podcastData);
     }
   }
 });

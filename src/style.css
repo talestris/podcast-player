@@ -233,3 +233,20 @@ button {
   color: #1d1d1f;
   white-space: nowrap;
 }
+
+.podcast-header-info {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.02);
+}
+
+.details-cover {
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
