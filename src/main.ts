@@ -335,11 +335,20 @@ audioElement.addEventListener("ended", () => {
 
   if (currentIndex !== -1 && currentIndex < activeList.length - 1) {
     const nextEpisode = activeList[currentIndex + 1];
-    playEpisode(
-      nextEpisode.audioUrl,
-      nextEpisode.title,
-      nextEpisode.id.toString(),
-    );
+
+    if (nextEpisode) {
+      playEpisode(
+        nextEpisode.audioUrl,
+        nextEpisode.title,
+        nextEpisode.id.toString(),
+      );
+    } else {
+      playBtn.textContent = "▶";
+    }
+  } else {
+    playBtn.textContent = "▶";
+    audioElement.currentTime = 0;
+    progressBar.value = "0";
   }
 });
 

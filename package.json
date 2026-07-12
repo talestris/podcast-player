@@ -5,8 +5,10 @@
   "main": "main.ts",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "repository": {
     "type": "git",
@@ -19,9 +21,10 @@
   "bugs": {
     "url": "https://github.com/talestris/podcast-player/issues"
   },
-  "homepage": "https://github.com/talestris/podcast-player#readme",
+  "homepage": "https://github.io",
   "devDependencies": {
     "@types/node": "^26.1.1",
+    "gh-pages": "^6.3.0",
     "typescript": "^7.0.2",
     "vite": "^8.1.4"
   }
