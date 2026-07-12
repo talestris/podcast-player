@@ -7,17 +7,33 @@ import { createPodcastCard } from "./components/podcast-card";
 import { createPodcastDetailsPage } from "./components/podcast-details";
 import { toggleLoader } from "./components/loader";
 import { debounce } from "./utils/debounce";
-import { Podcast } from "./types";
+import { Podcast, Episode } from "./types";
 import { formatDuration } from "./utils/format";
 
 let currentLimit = 20;
 let lastSearchQuery = "";
+let isShowingPlaylistPage = false;
+let currentEpisodesInView: Episode[] = [];
+let currentPodcastInView: Podcast | null = null;
+
+const savedPlaylistRaw = localStorage.getItem("talestris_podcast_playlist");
+let playlist: Episode[] = [];
+
+try {
+  const parsed = JSON.parse(savedPlaylistRaw || "[]");
+  playlist = Array.isArray(parsed) ? parsed : [];
+} catch {
+  playlist = [];
+}
 
 const loadMoreBtn = document.querySelector("#load-more-btn") as HTMLElement;
 const searchInput = document.querySelector("#search-input") as HTMLInputElement;
 const searchWrapper = document.querySelector(
   ".search-wrapper",
 ) as HTMLDivElement;
+const playlistToggleBtn = document.querySelector(
+  "#playlist-toggle-btn",
+) as HTMLButtonElement;
 const podcastContainer = document.querySelector(
   "#podcast-list",
 ) as HTMLDivElement;
@@ -42,6 +58,10 @@ const progressBar = document.querySelector(
   "#player-progress-bar",
 ) as HTMLInputElement;
 
+function getSavedEpisodeIds(): number[] {
+  return playlist.map((ep) => ep.id);
+}
+
 function renderPodcasts(podcasts: Podcast[]) {
   if (podcasts.length === 0) {
     podcastContainer.innerHTML = "<p>No results</p>";
@@ -53,7 +73,50 @@ function renderPodcasts(podcasts: Podcast[]) {
     .join("");
 }
 
+function renderPlaylistPage() {
+  isShowingPlaylistPage = true;
+  searchWrapper.style.display = "none";
+  loadMoreBtn.style.display = "none";
+  playlistToggleBtn.textContent = "Back to Browse";
+  playlistToggleBtn.classList.add("active");
+
+  if (playlist.length === 0) {
+    podcastContainer.innerHTML =
+      "<p style='text-align: center; width: 100%; padding: 2rem;'>Your Playlist is Empty 🤍</p>";
+    return;
+  }
+
+  const episodesHtml = playlist
+    .map(
+      (ep) => `
+  <div class="episode-item" data-audio-url="${ep.audioUrl}" data-title="${ep.title}" data-episode-id="${ep.id}">
+    <div class="episode-info">
+      <h4 class="episode-title">${ep.title}</h4>
+      <span class="episode-date">${ep.publishDate}</span>
+    </div>
+    <div class="episode-actions">
+      <span class="episode-duration">${ep.duration}</span>
+      <button type="button" class="playlist-btn saved" data-id="${ep.id}">❤️ Remove</button>
+    </div>
+  </div>
+`,
+    )
+    .join("");
+
+  podcastContainer.innerHTML = `
+    <div class="details-page" style="width: 100%;">
+      <h3>My Playlist (${playlist.length})</h3>
+      <div class="episodes-list">${episodesHtml}</div>
+    </div>
+  `;
+}
+
 async function loadApp(searchQuery: string = "") {
+  isShowingPlaylistPage = false;
+  playlistToggleBtn.textContent = "❤️ My Playlist";
+  playlistToggleBtn.classList.remove("active");
+  searchWrapper.style.display = "block";
+
   toggleLoader(true);
   lastSearchQuery = searchQuery;
 
@@ -81,6 +144,8 @@ async function loadApp(searchQuery: string = "") {
 }
 
 async function loadPodcastDetails(podcast: Podcast) {
+  isShowingPlaylistPage = false;
+  currentPodcastInView = podcast;
   toggleLoader(true);
 
   searchWrapper.style.display = "none";
@@ -88,12 +153,19 @@ async function loadPodcastDetails(podcast: Podcast) {
 
   try {
     const episodes = await fetchPodcastDetails(podcast.id);
-    podcastContainer.innerHTML = createPodcastDetailsPage(episodes, podcast);
+    currentEpisodesInView = episodes;
+
+    podcastContainer.innerHTML = createPodcastDetailsPage(
+      episodes,
+      podcast,
+      getSavedEpisodeIds(),
+    );
 
     const backBtn = document.querySelector("#back_btn") as HTMLButtonElement;
     if (backBtn) {
       backBtn.addEventListener("click", () => {
-        searchWrapper.style.display = "block";
+        currentPodcastInView = null;
+        /*searchWrapper.style.display = "block";*/
         loadApp(lastSearchQuery);
       });
     }
@@ -105,13 +177,39 @@ async function loadPodcastDetails(podcast: Podcast) {
     `;
     const backBtn = document.querySelector("#back_btn") as HTMLButtonElement;
     backBtn?.addEventListener("click", () => {
-      searchWrapper.style.display = "block";
+      /*searchWrapper.style.display = "block";*/
       loadApp(lastSearchQuery);
     });
   } finally {
     toggleLoader(false);
   }
 }
+
+function playEpisode(audioUrl: string, title: string, episodeId: string) {
+  playerContainer.classList.remove("hidden");
+
+  audioElement.setAttribute("data-current-ep-id", episodeId);
+  audioElement.src = audioUrl;
+  playerTitle.textContent = title;
+
+  audioElement.play();
+  playBtn.textContent = "⏸";
+
+  const savedTime = localStorage.getItem(`playback_pos_${episodeId}`);
+
+  if (savedTime) {
+    const resumeTime = Math.max(0, Number(savedTime) - 10);
+    audioElement.currentTime = resumeTime;
+  }
+}
+
+playlistToggleBtn.addEventListener("click", () => {
+  if (isShowingPlaylistPage) {
+    loadApp(lastSearchQuery);
+  } else {
+    renderPlaylistPage();
+  }
+});
 
 const handleSearchInput = debounce((event: Event) => {
   const query = (event.target as HTMLInputElement).value;
@@ -124,15 +222,6 @@ loadMoreBtn.addEventListener("click", () => {
   currentLimit += 20;
   loadApp();
 });
-
-function playEpisode(audioUrl: string, title: string) {
-  playerContainer.classList.remove("hidden");
-  audioElement.src = audioUrl;
-  playerTitle.textContent = title;
-
-  audioElement.play();
-  playBtn.textContent = "⏸";
-}
 
 playBtn.addEventListener("click", () => {
   if (audioElement.paused) {
@@ -154,6 +243,11 @@ audioElement.addEventListener("timeupdate", () => {
   if (duration > 0) {
     progressBar.value = ((current / duration) * 100).toString();
   }
+
+  const currentEpId = audioElement.getAttribute("data-current-ep-id");
+  if (currentEpId && current > 0) {
+    localStorage.setItem(`playback_pos_${currentEpId}`, current.toString());
+  }
 });
 
 progressBar.addEventListener("input", () => {
@@ -164,6 +258,44 @@ progressBar.addEventListener("input", () => {
 
 podcastContainer.addEventListener("click", (event: Event) => {
   const target = event.target as HTMLElement;
+
+  if (target.classList.contains("playlist-btn")) {
+    event.stopPropagation();
+
+    const epId = Number(target.getAttribute("data-id"));
+
+    const isSaved = getSavedEpisodeIds().includes(epId);
+
+    if (isSaved) {
+      playlist = playlist.filter((ep) => ep.id !== epId);
+    } else {
+      const episodeObject = currentEpisodesInView.find((ep) => ep.id === epId);
+
+      if (episodeObject) {
+        playlist.push(episodeObject);
+      }
+    }
+    localStorage.setItem(
+      "talestris_podcast_playlist",
+      JSON.stringify(playlist),
+    );
+
+    if (isShowingPlaylistPage) {
+      renderPlaylistPage();
+    } else if (currentPodcastInView) {
+      podcastContainer.innerHTML = createPodcastDetailsPage(
+        currentEpisodesInView,
+        currentPodcastInView,
+        getSavedEpisodeIds(),
+      );
+      const backBtn = document.querySelector("#back_btn") as HTMLButtonElement;
+      backBtn?.addEventListener("click", () => {
+        currentPodcastInView = null;
+        loadApp(lastSearchQuery);
+      });
+    }
+    return;
+  }
 
   const card = target.closest(".podcast-card") as HTMLElement | null;
 
@@ -184,6 +316,7 @@ podcastContainer.addEventListener("click", (event: Event) => {
       };
       loadPodcastDetails(podcastData);
     }
+    return;
   }
 
   const episodeItem = (target.closest(".episode-item") as HTMLElement) || null;
@@ -191,9 +324,10 @@ podcastContainer.addEventListener("click", (event: Event) => {
   if (episodeItem) {
     const audioUrl = episodeItem.getAttribute("data-audio-url");
     const title = episodeItem.getAttribute("data-title");
+    const episodeId = episodeItem.getAttribute("data-episode-id");
 
-    if (audioUrl && title) {
-      playEpisode(audioUrl, title);
+    if (audioUrl && title && episodeId) {
+      playEpisode(audioUrl, title, episodeId);
     }
   }
 });

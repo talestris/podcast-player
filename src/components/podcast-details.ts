@@ -12,7 +12,7 @@ export function createPodcastDetailsPage(
       const btnClass = isSaved ? "playlist-btn saved" : "playlist-btn";
 
       return `
-  <div class="episode-item" data-audio-url="${ep.audioUrl}" data-title="${ep.title}" data-episode-id="${ep.id}>
+  <div class="episode-item" data-audio-url="${ep.audioUrl}" data-title="${ep.title}" data-episode-id="${ep.id}">
     <div class="episode-info">
       <h4 class="episode-title">${ep.title}</h4>
       <span class="episode-date">${ep.publishDate}</span>
