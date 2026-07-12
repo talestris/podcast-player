@@ -37,8 +37,9 @@ export async function searchPodcasts(query: string): Promise<Podcast[]> {
 
 export async function fetchPodcastDetails(
   podcastId: number,
+  limit: number = 20,
 ): Promise<Episode[]> {
-  const url = `https://itunes.apple.com/lookup?id=${podcastId}&media=podcast&entity=podcastEpisode&limit=20`;
+  const url = `https://itunes.apple.com/lookup?id=${podcastId}&media=podcast&entity=podcastEpisode&limit=${limit}`;
   const response = await fetch(url);
   const data = await response.json();
 

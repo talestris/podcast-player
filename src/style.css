@@ -80,6 +80,7 @@ button {
   font-size: 0.813rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .playlist-btn.saved {
@@ -192,7 +193,7 @@ button {
   margin-top: auto;
 }
 
-#load-more-btn {
+.load_more_btn {
   display: inline-flex;
   align-items: center;
   padding: 1rem 2rem;
@@ -257,6 +258,8 @@ button {
     transform 0.2s ease,
     box-shadow 0.2s ease;
   cursor: pointer;
+  max-width: 56.25rem;
+  width: 100%;
 }
 
 .episode-item:hover {
@@ -269,13 +272,18 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  max-width: 80%;
+  max-width: 70%;
+  min-width: 0;
 }
 
 .episode-title {
   font-size: 1rem;
   font-weight: 600;
   color: #1d1d1f;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding-right: 2rem;
 }
 
 .episode-date {

@@ -15,6 +15,7 @@ let lastSearchQuery = "";
 let isShowingPlaylistPage = false;
 let currentEpisodesInView: Episode[] = [];
 let currentPodcastInView: Podcast | null = null;
+let currentEpisodesLimit = 20;
 
 const savedPlaylistRaw = localStorage.getItem("talestris_podcast_playlist");
 let playlist: Episode[] = [];
@@ -59,6 +60,9 @@ const progressBar = document.querySelector(
 ) as HTMLInputElement;
 
 function getSavedEpisodeIds(): number[] {
+  if (!Array.isArray(playlist)) {
+    return [];
+  }
   return playlist.map((ep) => ep.id);
 }
 
@@ -143,16 +147,17 @@ async function loadApp(searchQuery: string = "") {
   }
 }
 
-async function loadPodcastDetails(podcast: Podcast) {
+async function loadPodcastDetails(podcast: Podcast, limit: number = 20) {
   isShowingPlaylistPage = false;
   currentPodcastInView = podcast;
+  currentEpisodesLimit = limit;
   toggleLoader(true);
 
   searchWrapper.style.display = "none";
   loadMoreBtn.style.display = "none";
 
   try {
-    const episodes = await fetchPodcastDetails(podcast.id);
+    const episodes = await fetchPodcastDetails(podcast.id, limit);
     currentEpisodesInView = episodes;
 
     podcastContainer.innerHTML = createPodcastDetailsPage(
@@ -160,6 +165,25 @@ async function loadPodcastDetails(podcast: Podcast) {
       podcast,
       getSavedEpisodeIds(),
     );
+
+    const episodesContainer = document.querySelector(".episodes-container");
+    if (episodesContainer) {
+      const moreEpBtn = document.createElement("button");
+      moreEpBtn.type = "button";
+      moreEpBtn.id = "load-more-episodes-btn";
+      moreEpBtn.className = "load_more_btn";
+      moreEpBtn.style.marginTop = "1rem";
+      moreEpBtn.style.width = "100%";
+      moreEpBtn.textContent = "Load more episodes...";
+
+      if (episodes.length >= limit - 1) {
+        episodesContainer.appendChild(moreEpBtn);
+
+        moreEpBtn.addEventListener("click", () => {
+          loadPodcastDetails(podcast, currentEpisodesLimit + 20);
+        });
+      }
+    }
 
     const backBtn = document.querySelector("#back_btn") as HTMLButtonElement;
     if (backBtn) {
@@ -195,7 +219,11 @@ function playEpisode(audioUrl: string, title: string, episodeId: string) {
   audioElement.play();
   playBtn.textContent = "⏸";
 
-  const savedTime = localStorage.getItem(`playback_pos_${episodeId}`);
+  localStorage.setItem("talestris_last_played_ep_id", episodeId);
+  localStorage.setItem("talestris_last_played_url", audioUrl);
+  localStorage.setItem("talestris_last_played_title", title);
+
+  const savedTime = localStorage.getItem(`talestris_playback_pos_${episodeId}`);
 
   if (savedTime) {
     const resumeTime = Math.max(0, Number(savedTime) - 10);
@@ -246,7 +274,10 @@ audioElement.addEventListener("timeupdate", () => {
 
   const currentEpId = audioElement.getAttribute("data-current-ep-id");
   if (currentEpId && current > 0) {
-    localStorage.setItem(`playback_pos_${currentEpId}`, current.toString());
+    localStorage.setItem(
+      `talestris_playback_pos_${currentEpId}`,
+      current.toString(),
+    );
   }
 });
 
@@ -269,7 +300,9 @@ podcastContainer.addEventListener("click", (event: Event) => {
     if (isSaved) {
       playlist = playlist.filter((ep) => ep.id !== epId);
     } else {
-      const episodeObject = currentEpisodesInView.find((ep) => ep.id === epId);
+      const episodeObject =
+        currentEpisodesInView.find((ep) => ep.id === epId) ||
+        playlist.find((ep) => ep.id === epId);
 
       if (episodeObject) {
         playlist.push(episodeObject);
@@ -301,7 +334,6 @@ podcastContainer.addEventListener("click", (event: Event) => {
 
   if (card) {
     const podcastId = card.getAttribute("data-id");
-
     const title = card.querySelector(".podcast-title")?.textContent || "";
     const author = card.querySelector(".podcast-author")?.textContent || "";
     const coverUrl =
@@ -322,6 +354,8 @@ podcastContainer.addEventListener("click", (event: Event) => {
   const episodeItem = (target.closest(".episode-item") as HTMLElement) || null;
 
   if (episodeItem) {
+    if (target.classList.contains("playlist-btn")) return;
+
     const audioUrl = episodeItem.getAttribute("data-audio-url");
     const title = episodeItem.getAttribute("data-title");
     const episodeId = episodeItem.getAttribute("data-episode-id");
@@ -331,5 +365,44 @@ podcastContainer.addEventListener("click", (event: Event) => {
     }
   }
 });
+
+function restorePlayer() {
+  const lastEpId = localStorage.getItem("talestris_last_played_ep_id");
+  const lastUrl = localStorage.getItem("talestris_last_played_url");
+  const lastTitle = localStorage.getItem("talestris_last_played_title");
+
+  if (lastEpId && lastUrl && lastTitle) {
+    playerContainer.classList.remove("hidden");
+    audioElement.setAttribute("data-current-ep-id", lastEpId);
+    audioElement.src = lastUrl;
+    playerTitle.textContent = lastTitle;
+    playBtn.textContent = "▶";
+
+    const savedTime = localStorage.getItem(
+      `talestris_playback_pos_${lastEpId}`,
+    );
+
+    if (savedTime) {
+      audioElement.addEventListener(
+        "loadedmetadata",
+        () => {
+          const resumeTime = Math.max(0, Number(savedTime) - 10);
+          audioElement.currentTime = resumeTime;
+
+          currentTimeLabel.textContent = formatDuration(resumeTime * 1000);
+          const duration = audioElement.duration || 0;
+
+          if (duration > 0) {
+            totalTimeLabel.textContent = formatDuration(resumeTime * 1000);
+            progressBar.value = ((resumeTime / duration) * 100).toString();
+          }
+        },
+        { once: true },
+      );
+    }
+  }
+}
+
+restorePlayer();
 
 loadApp();
