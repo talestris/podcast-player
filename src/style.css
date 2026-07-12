@@ -130,6 +130,30 @@ button {
   opacity: 0.8;
 }
 
+.search-clear-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  padding: 0.25rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  color: #8e8e93;
+  transition: color 0.2s ease;
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+.search-clear-btn:hover {
+  color: #070716;
+}
+
+.search-clear-btn.hidden {
+  display: none;
+}
+
 #podcast-list {
   display: flex;
   flex-wrap: wrap;
@@ -367,6 +391,12 @@ button {
   overflow: hidden;
 }
 
+.player-title:hover {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #0071e3;
+}
+
 .player-progress-wrapper {
   display: flex;
   align-items: center;
@@ -379,4 +409,20 @@ button {
   cursor: pointer;
   flex-grow: 1;
   accent-color: #0071e3;
+}
+
+.player-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #8e8e93;
+  padding: 0.5rem;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.player-close-btn:hover {
+  color: #070716;
 }

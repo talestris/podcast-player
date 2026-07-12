@@ -16,6 +16,7 @@ let isShowingPlaylistPage = false;
 let currentEpisodesInView: Episode[] = [];
 let currentPodcastInView: Podcast | null = null;
 let currentEpisodesLimit = 20;
+let isUserSeeking = false;
 
 const savedPlaylistRaw = localStorage.getItem("talestris_podcast_playlist");
 let playlist: Episode[] = [];
@@ -58,6 +59,12 @@ const totalTimeLabel = document.querySelector(
 const progressBar = document.querySelector(
   "#player-progress-bar",
 ) as HTMLInputElement;
+const searchClearBtn = document.querySelector(
+  "#search-clear-btn",
+) as HTMLButtonElement;
+const playerCloseBtn = document.querySelector(
+  "#player-close-btn",
+) as HTMLButtonElement;
 
 function getSavedEpisodeIds(): number[] {
   if (!Array.isArray(playlist)) {
@@ -117,6 +124,7 @@ function renderPlaylistPage() {
 
 async function loadApp(searchQuery: string = "") {
   isShowingPlaylistPage = false;
+  currentPodcastInView = null;
   playlistToggleBtn.textContent = "❤️ My Playlist";
   playlistToggleBtn.classList.remove("active");
   searchWrapper.style.display = "block";
@@ -155,6 +163,8 @@ async function loadPodcastDetails(podcast: Podcast, limit: number = 20) {
 
   searchWrapper.style.display = "none";
   loadMoreBtn.style.display = "none";
+
+  localStorage.setItem("talestris_last_saved_podcast", JSON.stringify(podcast));
 
   try {
     const episodes = await fetchPodcastDetails(podcast.id, limit);
@@ -223,6 +233,13 @@ function playEpisode(audioUrl: string, title: string, episodeId: string) {
   localStorage.setItem("talestris_last_played_url", audioUrl);
   localStorage.setItem("talestris_last_played_title", title);
 
+  if (currentPodcastInView) {
+    localStorage.setItem(
+      "talestris_podcast_playing",
+      JSON.stringify(currentPodcastInView),
+    );
+  }
+
   const savedTime = localStorage.getItem(`talestris_playback_pos_${episodeId}`);
 
   if (savedTime) {
@@ -249,6 +266,21 @@ searchInput.addEventListener("input", handleSearchInput);
 loadMoreBtn.addEventListener("click", () => {
   currentLimit += 20;
   loadApp();
+});
+
+playerTitle.addEventListener("click", () => {
+  const savedPodcastRaw = localStorage.getItem("talestris_podcast_playing");
+
+  if (!savedPodcastRaw) {
+    return;
+  }
+
+  try {
+    const podcastData: Podcast = JSON.parse(savedPodcastRaw);
+    loadPodcastDetails(podcastData);
+  } catch (error) {
+    console.error("Failed to load podcast");
+  }
 });
 
 playBtn.addEventListener("click", () => {
@@ -281,10 +313,34 @@ audioElement.addEventListener("timeupdate", () => {
   }
 });
 
+audioElement.addEventListener("ended", () => {
+  const currentEpId = Number(audioElement.getAttribute("data-current-ep-id"));
+  if (!currentEpId) return;
+
+  const activeList = isShowingPlaylistPage ? playlist : currentEpisodesInView;
+  const currentIndex = activeList.findIndex((ep) => ep.id === currentEpId);
+
+  if (currentIndex !== -1 && currentIndex < activeList.length - 1) {
+    const nextEpisode = activeList[currentIndex + 1];
+    playEpisode(
+      nextEpisode.audioUrl,
+      nextEpisode.title,
+      nextEpisode.id.toString(),
+    );
+  }
+});
+
 progressBar.addEventListener("input", () => {
   const duration = audioElement.duration || 0;
   const newTime = (Number(progressBar.value) / 100) * duration;
   audioElement.currentTime = newTime;
+});
+
+progressBar.addEventListener("mousedown", () => {
+  isUserSeeking = true;
+});
+progressBar.addEventListener("mouseup", () => {
+  isUserSeeking = false;
 });
 
 podcastContainer.addEventListener("click", (event: Event) => {
@@ -370,6 +426,11 @@ function restorePlayer() {
   const lastEpId = localStorage.getItem("talestris_last_played_ep_id");
   const lastUrl = localStorage.getItem("talestris_last_played_url");
   const lastTitle = localStorage.getItem("talestris_last_played_title");
+  const savedPodcast = localStorage.getItem("talestris_podcast_playing");
+
+  if (savedPodcast) {
+    localStorage.setItem("talestris_podcast_playing", savedPodcast);
+  }
 
   if (lastEpId && lastUrl && lastTitle) {
     playerContainer.classList.remove("hidden");
@@ -402,6 +463,26 @@ function restorePlayer() {
     }
   }
 }
+
+searchInput.addEventListener("input", () => {
+  if (searchInput.value.trim() !== "") {
+    searchClearBtn.classList.remove("hidden");
+  } else {
+    searchClearBtn.classList.add("hidden");
+  }
+});
+
+searchClearBtn.addEventListener("click", () => {
+  searchInput.value = "";
+  searchClearBtn.classList.add("hidden");
+  loadApp("");
+});
+
+playerCloseBtn.addEventListener("click", () => {
+  audioElement.pause();
+  playBtn.textContent = "▶";
+  playerContainer.classList.add("hidden");
+});
 
 restorePlayer();
 
