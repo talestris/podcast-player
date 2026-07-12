@@ -7,7 +7,7 @@ import {
 import { formatDate, formatDuration } from "../utils/format";
 
 function wrapWithCorsProxy(url: string): string {
-  return `https://allorigins.win{encodeURIComponent(url)}`;
+  return `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
 }
 
 export async function fetchBestPodcasts(
