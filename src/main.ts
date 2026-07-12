@@ -17,6 +17,16 @@ let currentEpisodesInView: Episode[] = [];
 let currentPodcastInView: Podcast | null = null;
 let currentEpisodesLimit = 20;
 let isUserSeeking = false;
+let favoritePodcasts: Podcast[] = [];
+
+try {
+  const savedFavoritesRaw = localStorage.getItem("talestris_favorite_podcasts");
+  favoritePodcasts = Array.isArray(JSON.parse(savedFavoritesRaw || "[]"))
+    ? JSON.parse(savedFavoritesRaw || "[]")
+    : [];
+} catch {
+  favoritePodcasts = [];
+}
 
 const savedPlaylistRaw = localStorage.getItem("talestris_podcast_playlist");
 let playlist: Episode[] = [];
@@ -80,7 +90,10 @@ function renderPodcasts(podcasts: Podcast[]) {
   }
 
   podcastContainer.innerHTML = podcasts
-    .map((podcast) => createPodcastCard(podcast))
+    .map((p) => {
+      const isFav = favoritePodcasts.some((fav) => fav.id === p.id);
+      return createPodcastCard(p, isFav);
+    })
     .join("");
 }
 
@@ -345,6 +358,38 @@ progressBar.addEventListener("mouseup", () => {
 
 podcastContainer.addEventListener("click", (event: Event) => {
   const target = event.target as HTMLElement;
+  const favBtn = target.closest(".podcast-fav-btn") as HTMLButtonElement | null;
+
+  if (favBtn) {
+    event.stopPropagation();
+
+    const podcastId = Number(favBtn.getAttribute("data-id"));
+    const card = favBtn.closest(".podcast-card");
+    if (!card) return;
+
+    const title = card.querySelector(".podcast-title")?.textContent || "";
+    const author = card.querySelector(".podcast-author")?.textContent || "";
+    const coverUrl =
+      card.querySelector(".podcast-cover")?.getAttribute("src") || "";
+    const podcastData: Podcast = { id: podcastId, title, author, coverUrl };
+
+    const isAlreadyFav = favoritePodcasts.some((p) => p.id === podcastId);
+
+    if (isAlreadyFav) {
+      favoritePodcasts = favoritePodcasts.filter((p) => p.id !== podcastId);
+      favBtn.textContent = "🤍";
+      favBtn.classList.remove("active");
+    } else {
+      favoritePodcasts.push(podcastData);
+      favBtn.textContent = "❤️";
+      favBtn.classList.add("active");
+    }
+    localStorage.setItem(
+      "talestris_favorite_podcasts",
+      JSON.stringify(favoritePodcasts),
+    );
+    return;
+  }
 
   if (target.classList.contains("playlist-btn")) {
     event.stopPropagation();
