@@ -6,12 +6,17 @@ import {
 } from "../types";
 import { formatDate, formatDuration } from "../utils/format";
 
+function wrapWithCorsProxy(url: string): string {
+  return `https://allorigins.win{encodeURIComponent(url)}`;
+}
+
 export async function fetchBestPodcasts(
   limit: number = 20,
 ): Promise<Podcast[]> {
-  const url = `https://itunes.apple.com/us/rss/toppodcasts/limit=${limit}/json`;
-  const response = await fetch(url);
-  const data = await response.json();
+  const targetUrl = `https://itunes.apple.com/us/rss/toppodcasts/limit=${limit}/json`;
+  const response = await fetch(wrapWithCorsProxy(targetUrl));
+  const proxyData = await response.json();
+  const data = JSON.parse(proxyData.contents);
 
   return data.feed.entry.map((entry: any) => ({
     id: Number(entry.id.attributes["im:id"]),
@@ -22,10 +27,10 @@ export async function fetchBestPodcasts(
 }
 
 export async function searchPodcasts(query: string): Promise<Podcast[]> {
-  const response = await fetch(
-    `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=podcast&limit=30`,
-  );
-  const data: iTunesSearchResponse = await response.json();
+  const targetUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=podcast&limit=30`;
+  const response = await fetch(wrapWithCorsProxy(targetUrl));
+  const proxyData = await response.json();
+  const data: iTunesSearchResponse = JSON.parse(proxyData.contents);
 
   return data.results.map((track) => ({
     id: track.collectionId,
@@ -39,9 +44,10 @@ export async function fetchPodcastDetails(
   podcastId: number,
   limit: number = 20,
 ): Promise<Episode[]> {
-  const url = `https://itunes.apple.com/lookup?id=${podcastId}&media=podcast&entity=podcastEpisode&limit=${limit}`;
-  const response = await fetch(url);
-  const data = await response.json();
+  const targetUrl = `https://itunes.apple.com/lookup?id=${podcastId}&media=podcast&entity=podcastEpisode&limit=${limit}`;
+  const response = await fetch(wrapWithCorsProxy(targetUrl));
+  const proxyData = await response.json();
+  const data = JSON.parse(proxyData.contents);
 
   const rawEpisodes: iTunesEpisode[] = data.results.slice(1);
 
