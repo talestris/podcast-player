@@ -49,6 +49,14 @@ export async function fetchPodcastDetails(
   const proxyData = await response.json();
   const data = JSON.parse(proxyData.contents);
 
+  if (!data || !data.results || data.results.length <= 1) {
+    console.warn(
+      "No episodes found or invalid API response structure for podcast:",
+      podcastId,
+    );
+    return [];
+  }
+
   const rawEpisodes: iTunesEpisode[] = data.results.slice(1);
 
   return rawEpisodes.map((ep) => ({
