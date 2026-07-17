@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/podcast-player/",
+ // base: "/podcast-player/",
 
   server: {
     port: 3000,
