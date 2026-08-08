@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcast Player</title>
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="stylesheet" href="./src/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="navigation-bar">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="search">
+                <button type="button" class="search-clear-btn hidden" id="search-clear-btn">&times;</button>
+            </div>
+            <button type="button" id="playlist-toggle-btn" class="nav-btn">❤️ My Playlist</button>
+        </div>
+        <div id="loader" style="display: none;">Loading...</div>
+        <div id="podcast-list"></div>
+        <button type="button" class="load_more_btn" id="load-more-btn">Load more...</button>
+    </div>
+    <div class="audio-player hidden" id="audio-player-container">
+        <audio id="audio-element"></audio>
+        <button type="button" class="player-btn" id="play-btn">▶</button>
+        <div class="player-info">
+            <div class="player-title" id="player-episode-title">Episode Title</div>
+            <div class="player-progress-wrapper">
+                <span id="player-current-time">00:00</span>
+                <input type="range" id="player-progress-bar" value="0" min="0" max="100" step="0.1">
+                <span id="player-total-time">00:00</span>
+            </div>
+        </div>
+        <button type="button" class="player-close-btn" id="player-close-btn">&times;</button>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
+
+</body>
+
+</html>
